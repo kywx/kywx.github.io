@@ -1,3 +1,6 @@
+import { Timer } from './timer.js';
+
+
 /* Game state variables */
 let _mode = 'easy';
 
@@ -7,15 +10,31 @@ let _ansList = []
 let _encounter = [];
 let _ans = newNumber(3);
 let _lock = 0;
+let _newGame = 1;
 
 
 /* Get elements once */
 let _prog = document.getElementById('progress');
 let _timer = document.getElementById('timer');
+let _restart = document.getElementById('restart');
 let _score = document.getElementById('score');
 let _difficulty = document.getElementById('difficulty');
 
 
+/* Instantiate the timer class */
+let _Timer = new Timer(_timer);
+
+/* Add Event Listeners */
+document.addEventListener("DOMContentLoaded", () => {
+    _restart.addEventListener("click", reset);
+    _difficulty.addEventListener("click", changeMode);
+    for (let i=0; i<3; i++) {
+        let element = document.getElementById(i);
+        element.addEventListener("click", function() {
+            doorClick(element);
+        });
+    }
+})
 
 function changeMode() {
     /* Changes the gamemode and resets the state */
@@ -55,6 +74,8 @@ function reset() {
         resetDoors();
     }
     _lock = 0;
+    _newGame = 1;
+    _Timer.reset();
 }
 
 function softReset() {
@@ -71,8 +92,9 @@ function changeLevel(level) {
 }
 
 function resetDoors() {
-    for (var i=0; i<3; i++) {
-        var element = document.getElementById(i);
+    /* Reset to closed door images */
+    for (let i=0; i<3; i++) {
+        let element = document.getElementById(i);
         element.querySelector("img").src = './assets/door.png';
     }
 }
@@ -83,6 +105,11 @@ function doorClick(element) {
         return;
     }
 
+    if (_newGame) {
+        _Timer.start();
+        _newGame = 0;
+    }
+
     if (_currentLevel == _progress) {
         _encounter[_currentLevel-1] += 1;
     }
@@ -90,6 +117,7 @@ function doorClick(element) {
     if (element.id == _ans) {
         if (_currentLevel == 12) {
             // window.location.href='./results.html';
+            _Timer.stop();
             _score.innerHTML = `Luck: ${calculateScore()}`
             _score.style.display ='block';
             _lock = 1;
